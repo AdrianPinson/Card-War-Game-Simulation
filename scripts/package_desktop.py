@@ -23,8 +23,13 @@ MAIN = 'war.ui.DesktopLauncher'
 
 def run(command, **kwargs):
     print('+', ' '.join(map(str, command)), flush=True)
+    argv = list(map(str, command))
+    if os.name == 'nt' and argv[:3] == ['cmd.exe', '/d', '/c']:
+        # cmd strips one outer quote pair. Keep the quoted script path and
+        # quoted report path together inside an additional outer pair.
+        argv = 'cmd.exe /d /s /c "' + subprocess.list2cmdline(argv[3:]) + '"'
     try:
-        return subprocess.run(list(map(str, command)), check=True, **kwargs)
+        return subprocess.run(argv, check=True, **kwargs)
     except subprocess.CalledProcessError as error:
         for output in [error.stdout, error.stderr]:
             if output:
