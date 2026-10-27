@@ -35,11 +35,11 @@ History retains up to 10,001 snapshots and their round events. Exact cycle detec
 
 ## Validation
 
-`mvn clean verify` runs 47 unit/CLI/history cases. `mvn -Pui-tests verify` adds ten JavaFX integration cases with a real display, covering control-driven stepping, history identity, seeded input validation, terminal draws, autoplay, cancellation, chart totals, replay save/load/tamper rejection, tie stages, and the eight-seat compact layout. Linux CI uses Xvfb and captures screenshots as artifacts. Existing standalone-JAR checks continue on all three OSes. The core suite's 84 generated deals are part of one named property test.
+`mvn clean verify` runs 49 unit/CLI/history/package-probe cases. `mvn -Pui-tests verify` adds ten JavaFX integration cases with a real display, covering control-driven stepping, history identity, seeded input validation, terminal draws, autoplay, cancellation, chart totals, replay save/load/tamper rejection, tie stages, and the eight-seat compact layout. Linux CI uses Xvfb and captures screenshots as artifacts. Existing standalone-JAR checks continue on all three OSes. The core suite's 84 generated deals are part of one named property test.
 
-Resume wording, after this milestone is merged:
+Resume wording, after the final release milestone is merged:
 
 - Built a JavaFX War card-game simulator with seeded multiplayer deals, round history, verified replay playback, and cancellable batch analytics with CSV/JSON exports.
-- Separated a deterministic Java rules engine from desktop/CLI adapters; validated tie and exhaustion rules, card conservation, and replay integrity with 57 automated cases, including real JavaFX interactions.
+- Separated a deterministic Java rules engine from desktop/CLI adapters; validated tie and exhaustion rules, card conservation, and replay integrity with 59 automated cases, including real JavaFX interactions.
 
-These describe implemented capabilities and automated validation, without invented usage or performance claims. Release packaging remains a separate milestone.
+These describe implemented capabilities and automated validation, without invented usage or performance claims. See [release instructions](release.md) for portable and bundled-runtime packages.

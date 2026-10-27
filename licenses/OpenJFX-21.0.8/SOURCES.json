@@ -1,0 +1,27 @@
+[
+  {
+    "path": "ADDITIONAL_LICENSE_INFO",
+    "source": "https://raw.githubusercontent.com/openjdk/jfx21u/21.0.8%2B1/ADDITIONAL_LICENSE_INFO",
+    "sha256": "a69bce275ba7a3570af6579cb0f55682cd75fedfcd49e0e8e9022270c447c916"
+  },
+  {
+    "path": "ASSEMBLY_EXCEPTION",
+    "source": "https://raw.githubusercontent.com/openjdk/jfx21u/21.0.8%2B1/ASSEMBLY_EXCEPTION",
+    "sha256": "a44eb7b5caf5534c6ef536b21edb40b4d6babf91bf97d9d45596868618b2c6fb"
+  },
+  {
+    "path": "LICENSE",
+    "source": "https://raw.githubusercontent.com/openjdk/jfx21u/21.0.8%2B1/LICENSE",
+    "sha256": "4b9abebc4338048a7c2dc184e9f800deb349366bdf28eb23c2677a77b4c87726"
+  },
+  {
+    "path": "modules/javafx.graphics/src/main/legal/jpeg_fx.md",
+    "source": "https://raw.githubusercontent.com/openjdk/jfx21u/21.0.8%2B1/modules/javafx.graphics/src/main/legal/jpeg_fx.md",
+    "sha256": "a7bb58d9ed7f118480aaad20c318d1e5d4693ba6a4db5101903065ec5552c8b5"
+  },
+  {
+    "path": "modules/javafx.graphics/src/main/legal/mesa3d.md",
+    "source": "https://raw.githubusercontent.com/openjdk/jfx21u/21.0.8%2B1/modules/javafx.graphics/src/main/legal/mesa3d.md",
+    "sha256": "63f4e6f75caebbccb95d903fb43e46ac7111b3624d0a34f146b276d7d9e7b152"
+  }
+]

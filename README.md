@@ -2,7 +2,7 @@
 
 A Java War card-game engine with multiplayer ties, reproducible deals, verifiable replay files, and batch simulation exports. It evolves the original interactive console coursework while retaining the player/play-pile/won-pile structure. The original files remain in [`legacy/`](legacy/README.md).
 
-**Current milestone: card-table UI.** A JavaFX desktop adds seeded deals, round-by-round playback, verified replay viewing, and a simulation lab with charts and CSV/JSON exports. The console workflow remains available.
+**Version 1.0.0 — The Card Table.** A JavaFX desktop adds seeded deals, round-by-round playback, verified replay viewing, and a simulation lab with charts and CSV/JSON exports. The console workflow remains available.
 
 ![War card table](docs/images/card-table.png)
 
@@ -12,7 +12,7 @@ A Java War card-game engine with multiplayer ties, reproducible deals, verifiabl
 mvn javafx:run
 ```
 
-Requires Java 17+, Maven 3.9+, a graphical desktop, and the platform libraries required by JavaFX (on Ubuntu: `libgtk-3-0t64 libxtst6`). Maven downloads the JavaFX dependencies for the current OS. No account, API key, or service is needed. Portable application packaging is planned for the next milestone.
+Requires Java 17+, Maven 3.9+, a graphical desktop, and the platform libraries required by JavaFX (on Ubuntu: `libgtk-3-0t64 libxtst6`). Maven downloads the JavaFX dependencies for the current OS. No account, API key, or service is needed. Portable and bundled-runtime application ZIPs are built for Linux, Windows, and macOS. See [release instructions](docs/release.md) for packages, OS/CPU requirements, checksums, and draft-release status.
 
 The table uses a felt-and-brass card-game design. Deal 2–8 named seats; step through rounds, review earlier rounds, or auto-play at three speeds. Select each reveal in a tied round to see its face-up cards and face-down stake counts. Post-round pile counts, round awards, and terminal draw reasons are explicit. The separate **Simulation lab** runs consecutive-seed batches on a background worker, charts outcomes and game lengths, and exports completed reports. See the [desktop guide](docs/desktop.md) for playback, replay, and cancellation details.
 
@@ -81,4 +81,6 @@ Requires Python 3.12+. The smoke check starts the actual JAR from a different wo
 The JUnit suite covers handcrafted multiplayer/short-hand/repeated-war fixtures, exact cycle detection, round caps, immutable snapshots, replay corruption, statistics, cancellation, and CLI errors. One conservation/determinism test runs **84 seeded deals** across 2–8 players, capped at 700 rounds per deal. Those generated deals are a property-test loop, not 84 additional named test cases. See [architecture](docs/architecture.md) for the UI boundary and tradeoffs.
 
 
-The desktop adds six toolkit-independent history tests and ten integration tests of real JavaFX controls and worker callbacks. Run the display tests with `mvn -Pui-tests verify` (Linux CI uses Xvfb). Current total: **47 unit/CLI/history cases + 10 desktop integration cases**. The desktop checks run on Linux; the core/CLI checks run on Linux, Windows, and macOS. This is not a claim of manual desktop validation on every OS.
+The desktop adds six toolkit-independent history tests and ten integration tests of real JavaFX controls and worker callbacks. Run the display tests with `mvn -Pui-tests verify` (Linux CI uses Xvfb). Current total: **49 unit/CLI/history/package-probe cases + 10 desktop integration cases**. The desktop checks run on Linux; the core/CLI checks run on Linux, Windows, and macOS. This is not a claim of manual desktop validation on every OS.
+
+See the [two-minute demo and resume wording](docs/demo-guide.md) for a concise project walkthrough.
