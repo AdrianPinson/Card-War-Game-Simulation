@@ -25,7 +25,7 @@ public final class Replay {
             line(writer, "faceDown " + rules.faceDownCards()); line(writer, "maxRounds " + rules.maxRounds());
             line(writer, "cycles " + rules.detectCycles());
             for (String name : cleanNames) line(writer, "name " + Base64.getEncoder().encodeToString(name.getBytes(StandardCharsets.UTF_8)));
-            line(writer, "initial " + fingerprint(game.snapshot(), null));
+            line(writer, "initial " + initialFingerprint(game.snapshot(), seed, rules));
             while (game.result().status() == Status.IN_PROGRESS) {
                 RoundResult round = game.playRound();
                 line(writer, "round " + fingerprint(game.snapshot(), round));
@@ -52,7 +52,7 @@ public final class Replay {
             List<String> names = new ArrayList<>();
             for (int i = 0; i < count; i++) names.add(new String(Base64.getDecoder().decode(value(reader, "name")), StandardCharsets.UTF_8));
             WarGame game = WarGame.newGame(names, seed, rules);
-            expect(reader, "initial " + fingerprint(game.snapshot(), null));
+            expect(reader, "initial " + initialFingerprint(game.snapshot(), seed, rules));
             while (game.result().status() == Status.IN_PROGRESS) {
                 RoundResult round = game.playRound();
                 expect(reader, "round " + fingerprint(game.snapshot(), round));
@@ -80,6 +80,17 @@ public final class Replay {
         if (next == -1 && text.isEmpty()) return null;
         if (!text.isEmpty() && text.charAt(text.length() - 1) == '\r') text.setLength(text.length() - 1);
         return text.toString();
+    }
+    private static String initialFingerprint(GameState state, long seed, Rules rules) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            try (DataOutputStream out = new DataOutputStream(new DigestOutputStream(OutputStream.nullOutputStream(), digest))) {
+                out.writeUTF(VERSION); out.writeLong(seed); out.writeInt(rules.faceDownCards());
+                out.writeInt(rules.maxRounds()); out.writeBoolean(rules.detectCycles());
+                out.writeUTF(fingerprint(state, null));
+            }
+            return HexFormat.of().formatHex(digest.digest());
+        } catch (NoSuchAlgorithmException | IOException e) { throw new IllegalStateException("Cannot fingerprint replay manifest", e); }
     }
     static String fingerprint(GameState state, RoundResult round) {
         try {

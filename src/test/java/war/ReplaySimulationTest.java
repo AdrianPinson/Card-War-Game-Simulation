@@ -38,6 +38,17 @@ class ReplaySimulationTest {
         Files.writeString(trace,original.replaceFirst("round [0-9a-f]{64}","round "+"0".repeat(64)));
         assertThrows(IOException.class,()->Replay.verify(trace));
     }
+    @Test void replayBindsTheExactSeedAndUnusedRuleSettings() throws Exception {
+        Path trace=directory.resolve("manifest.war");
+        Replay.write(trace,names,42,new Rules(3,1,true));
+        String original=Files.readString(trace);
+        long alias=42+(1L<<48);
+        assertEquals(Card.shuffled(42),Card.shuffled(alias)); // Same Random state is not the same manifest seed.
+        for(String changed:List.of(original.replace("seed 42", "seed "+alias),
+                original.replace("faceDown 3", "faceDown 4"),original.replace("cycles true", "cycles false"))) {
+            Files.writeString(trace,changed);assertThrows(IOException.class,()->Replay.verify(trace));
+        }
+    }
     @Test void missingAndAdditionalEventsAreRejected() throws Exception {
         Path trace=directory.resolve("trace.war"); Replay.write(trace,names,42,rules);
         String original=Files.readString(trace);
