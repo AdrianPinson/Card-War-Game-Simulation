@@ -64,3 +64,72 @@ jobs:
             target/failsafe-reports/
             target/ui-screenshots/
           retention-days: 7
+
+  desktop-packages:
+    timeout-minutes: 15
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    needs: [verify, desktop]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install graphical package-check dependencies
+        if: runner.os == 'Linux'
+        timeout-minutes: 3
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgtk-3-0t64 libxtst6
+      - name: Build and verify both distributions including the extracted GUI
+        if: runner.os == 'Linux'
+        run: xvfb-run -a -s '-screen 0 1600x1200x24' python scripts/package_desktop.py --verify-gui
+      - name: Build and verify both distributions
+        if: runner.os != 'Linux'
+        run: python scripts/package_desktop.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: war-release-${{ runner.os }}-${{ runner.arch }}
+          path: |
+            target/releases/*.zip
+            target/releases/SHA256SUMS-*.txt
+          retention-days: 7
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: war-package-reports-${{ runner.os }}
+          path: target/extracted package checks with spaces/*-report.txt
+          retention-days: 7
+  draft-release:
+    timeout-minutes: 5
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: desktop-packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: war-release-*
+          merge-multiple: true
+          path: target/release-assets
+      - name: Prepare versioned draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        shell: bash
+        run: |
+          version=$(python3 -c "import sys; sys.path.insert(0, 'scripts'); from package_desktop import version; print(version())")
+          if gh release view "v$version" >/dev/null 2>&1; then
+            echo "Release v$version already exists; leaving it unchanged."
+          else
+            gh release create "v$version" --target "$GITHUB_SHA" --draft --title "War $version — The Card Table" --notes-file docs/release-notes.md target/release-assets/*.zip target/release-assets/SHA256SUMS-*.txt
+          fi
