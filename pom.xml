@@ -3,12 +3,19 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.adrianpinson</groupId><artifactId>war-simulation</artifactId><version>0.1.0</version>
   <name>War Card Game Simulation</name>
-  <description>Deterministic multiplayer War engine and simulation CLI</description>
+  <description>Deterministic War engine, simulation CLI, and JavaFX card table</description>
   <properties><maven.compiler.release>17</maven.compiler.release><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding></properties>
-  <dependencies><dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><version>5.12.2</version><scope>test</scope></dependency></dependencies>
+  <dependencies><dependency><groupId>org.openjfx</groupId><artifactId>javafx-controls</artifactId><version>21.0.8</version></dependency><dependency><groupId>org.junit.jupiter</groupId><artifactId>junit-jupiter</artifactId><version>5.12.2</version><scope>test</scope></dependency></dependencies>
   <build><finalName>war-simulation</finalName><plugins>
+    <plugin><groupId>org.openjfx</groupId><artifactId>javafx-maven-plugin</artifactId><version>0.0.8</version><configuration><mainClass>war.ui.DesktopLauncher</mainClass></configuration></plugin>
     <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.14.1</version></plugin>
     <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.5.6</version></plugin>
     <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-jar-plugin</artifactId><version>3.4.2</version><configuration><archive><manifest><mainClass>war.War</mainClass></manifest></archive></configuration></plugin>
   </plugins></build>
+  <profiles><profile><id>ui-tests</id><build><plugins>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-failsafe-plugin</artifactId><version>3.5.6</version>
+      <configuration><argLine>-Dprism.order=sw</argLine><forkedProcessTimeoutInSeconds>120</forkedProcessTimeoutInSeconds></configuration>
+      <executions><execution><goals><goal>integration-test</goal><goal>verify</goal></goals></execution></executions>
+    </plugin>
+  </plugins></build></profile></profiles>
 </project>

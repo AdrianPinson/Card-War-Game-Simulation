@@ -25,3 +25,9 @@ The game has no player strategy inputs once a deal and rules are fixed. The upco
 Handcrafted cases cover unique wins, highest-only multiplayer ties, narrowing repeated ties, last-card wars, exhausted contenders and unclaimed pots, FIFO recycling, an exact five-round repeated-state fixture, and terminal precedence. Property tests compare immutable full events and conserve all 52 physical cards over 84 seeded deals across 2–8 players. Additional tests cover replay tampering/truncation, seeded batch aggregation and quantiles, progress/cancellation, input errors, and atomic export preservation on failure.
 
 CI also starts the standalone JAR from another working directory on Linux, Windows, and macOS. The smoke script uses Python's independent JSON/CSV readers to check exports, seed precision, row totals, replay reproducibility, corruption rejection, and real process exit codes.
+
+## JavaFX adapter
+
+`war.ui.TableSession` owns a validated configuration and bounded immutable round history. Live forward steps mutate the engine only at the history frontier; verified replays are read-only frame sequences. `Replay.read` stages callbacks during full regeneration and returns immutable metadata only after every fingerprint validates. `TableSession.open` publishes the staged history only on success. The CLI's existing verification API delegates to the same parser.
+
+`WarView` owns controls, a timeline for paced round progression, and one cancellable background executor for batches and files. The engine remains free of toolkit dependencies. Charts consume the same completed `Simulation.Report` as CLI exports. JavaFX dependencies are on the build classpath; the console JAR still starts via `war.War` and loads no desktop classes. Desktop packaging is deferred to the release milestone.

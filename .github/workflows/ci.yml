@@ -1,4 +1,4 @@
-name: War core
+name: War validation
 on:
   push:
     branches: [main, 'feat/**']
@@ -39,4 +39,28 @@ jobs:
         with:
           name: war-core-jar
           path: target/war-simulation.jar
+          retention-days: 7
+
+  desktop:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Install desktop test dependencies
+        timeout-minutes: 3
+        run: sudo apt-get update && sudo apt-get install -y xvfb libgtk-3-0t64 libxtst6
+      - name: Exercise real JavaFX controls and worker tasks
+        run: xvfb-run -a -s '-screen 0 1600x1200x24' mvn -B -Pui-tests clean verify
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: war-desktop-results
+          path: |
+            target/failsafe-reports/
+            target/ui-screenshots/
           retention-days: 7
