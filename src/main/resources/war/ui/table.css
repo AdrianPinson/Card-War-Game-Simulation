@@ -1,0 +1,66 @@
+.root {
+    -fx-font-family: "DejaVu Sans", "Arial", sans-serif;
+    -fx-font-size: 13px;
+    -fx-base: #f3f0e7;
+    -fx-background: #f3f0e7;
+    -fx-text-fill: #263b34;
+    -fx-accent: #926724;
+    -fx-focus-color: #a4762d;
+    -fx-faint-focus-color: #a4762d30;
+}
+.label { -fx-text-fill: #263b34; }
+.header { -fx-padding: 16 28; -fx-background-color: #172c25; -fx-border-color: #b99552; -fx-border-width: 0 0 3 0; }
+.header .label { -fx-text-fill: #efe9d7; }
+.brand { -fx-font-family: "Georgia", "DejaVu Serif", serif; -fx-font-size: 49px; -fx-font-weight: bold; }
+.eyebrow { -fx-font-size: 10px; -fx-font-weight: bold; }
+.header .eyebrow { -fx-text-fill: #d7bb80; }
+.header .muted { -fx-text-fill: #b6c7bd; }
+.suits { -fx-font-size: 26px; }
+.setup { -fx-padding: 24 18; -fx-background-color: #e8e5da; }
+.section-title { -fx-font-family: "Georgia", "DejaVu Serif", serif; -fx-font-size: 21px; }
+.field-label { -fx-font-size: 11px; -fx-text-fill: #4b5d53; }
+.hint { -fx-text-fill: #536358; -fx-line-spacing: 4px; }
+.muted { -fx-text-fill: #637468; -fx-font-size: 12px; }
+.text-field, .text-area, .spinner { -fx-background-color: #fffdf5; -fx-border-color: #b3b7a8; -fx-border-radius: 3; -fx-background-radius: 3; }
+.text-area .content { -fx-background-color: #fffdf5; }
+.button { -fx-background-color: #e5e1d5; -fx-text-fill: #223a30; -fx-padding: 10 13; -fx-background-radius: 4; -fx-border-color: #aeb5a4; -fx-border-radius: 4; -fx-cursor: hand; }
+.button:hover { -fx-background-color: #d6d5c4; }
+.button:focused { -fx-border-color: #87601e; -fx-border-width: 2; -fx-padding: 9 12; }
+.button.primary { -fx-background-color: #254c3d; -fx-text-fill: #fff9e8; -fx-border-color: #254c3d; }
+.button.primary:hover { -fx-background-color: #35644f; }
+.button:disabled { -fx-opacity: 0.45; }
+.combo-box { -fx-background-color: #e8e5da; -fx-border-color: #b3b7a8; -fx-border-radius: 4; }
+.tab-pane > .tab-header-area { -fx-padding: 8 20 0 20; }
+.tab-pane > .tab-header-area > .tab-header-background { -fx-background-color: #e3e2d6; }
+.tab { -fx-background-color: #e3e2d6; -fx-padding: 10 24; }
+.tab:selected { -fx-background-color: #f3f0e7; -fx-border-color: #926724; -fx-border-width: 3 0 0 0; }
+.tab .tab-label { -fx-text-fill: #3a4b3e; -fx-font-weight: bold; }
+.scroll-pane, .scroll-pane > .viewport { -fx-background-color: #f3f0e7; }
+.round-number { -fx-font-family: "Georgia", "DejaVu Serif", serif; -fx-font-size: 42px; -fx-text-fill: #7d5c23; }
+.table-heading, .lab-heading { -fx-font-family: "Georgia", "DejaVu Serif", serif; -fx-font-size: 29px; }
+.felt { -fx-background-color: radial-gradient(center 50% 45%, radius 80%, #315d49, #193d30); -fx-background-radius: 52; -fx-border-color: #b99a60; -fx-border-width: 3; -fx-border-radius: 52; -fx-padding: 18 20 26 20; }
+.table-mark { -fx-font-size: 24px; -fx-text-fill: #d1bb86; }
+.seat, .seat-winner { -fx-padding: 10 4; -fx-background-radius: 16; }
+.seat-winner { -fx-border-color: #dcc182; -fx-border-width: 1; -fx-border-radius: 16; -fx-background-color: #ffffff0b; }
+.seat-name { -fx-text-fill: #fff9e5; -fx-font-size: 16px; -fx-font-weight: bold; }
+.seat-status { -fx-text-fill: #dac48d; -fx-font-size: 9px; -fx-font-weight: bold; }
+.card-count { -fx-text-fill: #fff9e5; -fx-font-size: 18px; }
+.pile-count, .stake, .felt-note { -fx-text-fill: #d3e0d6; -fx-font-size: 11px; }
+.felt-note { -fx-text-alignment: center; }
+.playing-card { -fx-min-width: 82; -fx-max-width: 82; -fx-min-height: 114; -fx-max-height: 114; -fx-padding: 7; -fx-background-color: #fffbed; -fx-background-radius: 7; -fx-border-radius: 7; -fx-border-color: #d6d0b7; -fx-effect: dropshadow(gaussian, #061d2280, 7, 0, 0, 3); }
+.card-corner { -fx-font-family: "DejaVu Serif", serif; -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #263932; }
+.card-suit { -fx-font-size: 35px; -fx-text-fill: #263932; }
+.red-card .label { -fx-text-fill: #a83b33; }
+.card-back { -fx-background-color: #e9dfbf, #263f5a, linear-gradient(to bottom right, #294966, #172d42); -fx-background-insets: 0, 4, 8; -fx-background-radius: 7, 4, 2; -fx-border-color: #d6c18a; -fx-border-radius: 7; -fx-effect: dropshadow(gaussian, #061d2280, 7, 0, 0, 3); }
+.back-mark { -fx-text-fill: #dfcc9e; -fx-font-family: "Georgia", "DejaVu Serif", serif; -fx-font-size: 20px; }
+.outcome { -fx-text-fill: #ffe7ac; -fx-font-family: "Georgia", "DejaVu Serif", serif; -fx-font-size: 25px; -fx-text-alignment: center; }
+.footer { -fx-background-color: #e5e2d5; -fx-padding: 12 24; -fx-border-color: #c5c7b7; -fx-border-width: 1 0 0 0; }
+.message { -fx-text-fill: #2c4c3d; }
+.message.error { -fx-text-fill: #a13528; -fx-font-weight: bold; }
+.metric { -fx-font-size: 28px; -fx-font-family: "Georgia", "DejaVu Serif", serif; -fx-text-fill: #7d5c23; }
+.empty-state { -fx-padding: 45 25; -fx-border-color: #b8bba9; -fx-border-style: segments(5, 5); -fx-text-fill: #596c5e; }
+.chart { -fx-padding: 12; -fx-background-color: #fffdf4; -fx-background-radius: 12; }
+.chart-title { -fx-font-family: "Georgia", "DejaVu Serif", serif; -fx-font-size: 19px; }
+.chart-plot-background { -fx-background-color: #f5f2e6; }
+.default-color0.chart-bar { -fx-bar-fill: #3c7155; }
+.chart-horizontal-grid-lines { -fx-stroke: #dbdfd1; }

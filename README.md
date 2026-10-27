@@ -2,11 +2,25 @@
 
 A Java War card-game engine with multiplayer ties, reproducible deals, verifiable replay files, and batch simulation exports. It evolves the original interactive console coursework while retaining the player/play-pile/won-pile structure. The original files remain in [`legacy/`](legacy/README.md).
 
-**Current milestone: core 0.1.0.** The console app, rules engine, replay verifier, and simulation reports are implemented. A graphical UI is the next portion and is not included yet.
+**Current milestone: card-table UI.** A JavaFX desktop adds seeded deals, round-by-round playback, verified replay viewing, and a simulation lab with charts and CSV/JSON exports. The console workflow remains available.
+
+![War card table](docs/images/card-table.png)
+
+## Open the card table
+
+```sh
+mvn javafx:run
+```
+
+Requires Java 17+, Maven 3.9+, a graphical desktop, and the platform libraries required by JavaFX (on Ubuntu: `libgtk-3-0t64 libxtst6`). Maven downloads the JavaFX dependencies for the current OS. No account, API key, or service is needed. Portable application packaging is planned for the next milestone.
+
+The table uses a felt-and-brass card-game design. Deal 2–8 named seats; step through rounds, review earlier rounds, or auto-play at three speeds. Select each reveal in a tied round to see its face-up cards and face-down stake counts. Post-round pile counts, round awards, and terminal draw reasons are explicit. The separate **Simulation lab** runs consecutive-seed batches on a background worker, charts outcomes and game lengths, and exports completed reports. See the [desktop guide](docs/desktop.md) for playback, replay, and cancellation details.
+
+![Simulation lab](docs/images/simulation-lab.png)
 
 ## Build and run
 
-Requires **Java 17+ and Maven 3.9+** to build. Running the standalone JAR requires only Java; there are no runtime dependencies or external services.
+Requires **Java 17+ and Maven 3.9+** to build. The standalone **console** JAR requires only Java; its engine/CLI code has no runtime dependencies or external services. JavaFX is used only by the desktop entry point.
 
 ```sh
 mvn clean verify
@@ -41,7 +55,7 @@ Defaults are seed **42**, **3 face-down cards**, **10,000 maximum top-level roun
 --face-down 0 --max-rounds 5000 --no-cycles
 ```
 
-The round limit remains active when cycle detection is disabled. Simulations are bounded to 1–10,000 games; a large batch and high round limit can still take time. The engine's batch API supports progress and cancellation for the upcoming UI. The CLI stops normally with Ctrl+C through the process environment; no partial batch export is written before a report finishes.
+The round limit remains active when cycle detection is disabled. Simulations are bounded to 1–10,000 games; a large batch and high round limit can still take time. The desktop uses the engine's progress and cancellation callbacks. The CLI stops normally with Ctrl+C through the process environment; no partial batch export is written before a report finishes.
 
 ## Rules and correctness
 
@@ -65,3 +79,6 @@ python3 scripts/smoke_cli.py
 Requires Python 3.12+. The smoke check starts the actual JAR from a different working directory with spaces, parses JSON/CSV exports, verifies full-range seeds and Unicode names, confirms replay byte reproducibility and tamper rejection, and checks exit codes. CI runs Maven tests and this executable check on Linux, Windows, and macOS.
 
 The JUnit suite covers handcrafted multiplayer/short-hand/repeated-war fixtures, exact cycle detection, round caps, immutable snapshots, replay corruption, statistics, cancellation, and CLI errors. One conservation/determinism test runs **84 seeded deals** across 2–8 players, capped at 700 rounds per deal. Those generated deals are a property-test loop, not 84 additional named test cases. See [architecture](docs/architecture.md) for the UI boundary and tradeoffs.
+
+
+The desktop adds six toolkit-independent history tests and ten integration tests of real JavaFX controls and worker callbacks. Run the display tests with `mvn -Pui-tests verify` (Linux CI uses Xvfb). Current total: **47 unit/CLI/history cases + 10 desktop integration cases**. The desktop checks run on Linux; the core/CLI checks run on Linux, Windows, and macOS. This is not a claim of manual desktop validation on every OS.

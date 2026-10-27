@@ -38,6 +38,16 @@ public final class Replay {
     }
     /** Regenerate every round; reject changed rules/seeds, missing/trailing events, or tampered hashes. */
     public static Result verify(Path file) throws IOException {
+        return read(file, 1_000_000, (state, round) -> {}).result();
+    }
+    /** Metadata is returned only after the complete manifest validates. Observers must stage results locally. */
+    public record VerifiedGame(List<String> names, long seed, Rules rules, Result result) {
+        public VerifiedGame { names = List.copyOf(names); }
+    }
+    public static VerifiedGame read(Path file, int roundLimit,
+                                   java.util.function.BiConsumer<GameState,RoundResult> observer) throws IOException {
+        if (roundLimit < 1 || roundLimit > 1_000_000) throw new IllegalArgumentException("Invalid replay round limit");
+        Objects.requireNonNull(observer);
         if (Files.size(file) > 96L * 1024 * 1024) throw new IOException("Replay exceeds the 96 MiB input limit");
         try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
             expect(reader, VERSION);
@@ -49,17 +59,21 @@ public final class Replay {
             String cycles = value(reader, "cycles");
             if (!cycles.equals("true") && !cycles.equals("false")) throw new IOException("Invalid cycle flag");
             Rules rules = new Rules(faceDown, maxRounds, Boolean.parseBoolean(cycles));
+            if (maxRounds > roundLimit) throw new IOException("Replay round limit exceeds this viewer's " + roundLimit + "-round limit; use the CLI");
             List<String> names = new ArrayList<>();
             for (int i = 0; i < count; i++) names.add(new String(Base64.getDecoder().decode(value(reader, "name")), StandardCharsets.UTF_8));
             WarGame game = WarGame.newGame(names, seed, rules);
             expect(reader, "initial " + initialFingerprint(game.snapshot(), seed, rules));
+            observer.accept(game.snapshot(), null);
             while (game.result().status() == Status.IN_PROGRESS) {
+                if (Thread.currentThread().isInterrupted()) throw new java.util.concurrent.CancellationException("Replay cancelled");
                 RoundResult round = game.playRound();
                 expect(reader, "round " + fingerprint(game.snapshot(), round));
+                observer.accept(game.snapshot(), round);
             }
             expect(reader, "end " + fingerprint(game.snapshot(), null));
             if (readLine(reader) != null) throw new IOException("Unexpected trailing replay content");
-            return game.result();
+            return new VerifiedGame(names, seed, rules, game.result());
         } catch (IllegalArgumentException e) { throw new IOException("Invalid replay manifest: " + e.getMessage(), e); }
     }
     private static String value(BufferedReader reader, String key) throws IOException {
