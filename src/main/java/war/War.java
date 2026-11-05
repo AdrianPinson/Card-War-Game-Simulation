@@ -23,8 +23,8 @@ public final class War {
             String command = args[0];
             Set<String> allowed = switch(command) {
                 case "play" -> Set.of("seed", "players", "names", "face-down", "max-rounds", "no-cycles", "trace", "summary", "verbose");
-                case "simulate" -> Set.of("seed", "players", "names", "face-down", "max-rounds", "no-cycles", "games", "csv", "summary");
-                case "compare" -> Set.of("seed", "players", "names", "face-down", "against-face-down", "max-rounds", "no-cycles", "games", "csv", "summary");
+                case "simulate" -> Set.of("seed", "players", "names", "face-down", "max-rounds", "no-cycles", "games", "workers", "csv", "summary");
+                case "compare" -> Set.of("seed", "players", "names", "face-down", "against-face-down", "max-rounds", "no-cycles", "games", "workers", "csv", "summary");
                 case "replay" -> Set.of("file", "summary");
                 default -> throw new IllegalArgumentException("Unknown command: " + command);
             };
@@ -55,11 +55,11 @@ public final class War {
                     int games = Integer.parseInt(options.getOrDefault("games", "100"));
                     if (command.equals("compare")) {
                         Rules alternative = new Rules(Integer.parseInt(options.getOrDefault("against-face-down", "0")), rules.maxRounds(), rules.detectCycles());
-                        var report = RuleExperiments.compare(names, rules, alternative, seed, games, n -> {}, () -> false);
+                        var report = RuleExperiments.compare(names, rules, alternative, seed, games, Integer.parseInt(options.getOrDefault("workers", "1")), n -> {}, () -> false);
                         if (options.containsKey("csv")) Reports.comparisonCsv(Path.of(options.get("csv")), report);
                         summary = Reports.comparison(report);
                     } else {
-                        Simulation.Report report = Simulation.run(names, rules, seed, games);
+                        Simulation.Report report = Simulation.runParallel(names, rules, seed, games, Integer.parseInt(options.getOrDefault("workers", "1")), n -> {}, () -> false);
                         if (options.containsKey("csv")) Reports.csv(Path.of(options.get("csv")), report);
                         summary = Reports.batch(report);
                     }
@@ -122,6 +122,7 @@ public final class War {
             compare  --games 100 --seed 42 --face-down 3 --against-face-down 0 --summary target/comparison.json
             replay   --file target/game.war
             Options for play/simulate: --face-down 3 --max-rounds 10000 --no-cycles
+            simulate/compare accept --workers 1..16; default 1. Ordered exports are identical across worker counts.
             --verbose prints each play round. Without it, stdout is one JSON summary.
             Seats are zero-based. Defaults: 2 players, seed 42, 3 face-down cards, cycle detection on.
             Short hands use the last-card exhaustion variant; see docs/rules.md.

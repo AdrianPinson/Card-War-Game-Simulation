@@ -44,6 +44,7 @@ public final class WarView implements AutoCloseable {
     private TableSession session;
     private Simulation.Report report;
     private RuleExperiments.Report experiment;
+    private final Spinner<Integer> workers = new Spinner<>(1, 16, Math.min(4, Runtime.getRuntime().availableProcessors()));
     private final Spinner<Integer> alternativeFaceDown = new Spinner<>(0, 10, 0);
     private boolean rendering, closed;
 
@@ -119,9 +120,10 @@ public final class WarView implements AutoCloseable {
         Button json = button("Export summary JSON…", "batch-json", () -> chooseBatchExport(true));
         csv.disableProperty().bind(javafx.beans.binding.Bindings.createBooleanBinding(() -> report == null, labResults.getChildren()));
         json.disableProperty().bind(csv.disableProperty());
+        workers.setId("simulation-workers");
         alternativeFaceDown.setId("alternative-face-down");
         Button comparison = button("Compare rules", "compare-rules", this::runComparison);
-        HBox toolbar = new HBox(12, field("Games · 1–10,000", games), run); toolbar.setAlignment(Pos.BOTTOM_LEFT);
+        HBox toolbar = new HBox(12, field("Games · 1–10,000", games), field("Workers · 1–16", workers), run); toolbar.setAlignment(Pos.BOTTOM_LEFT);
         games.setPrefWidth(140);
         VBox box = new VBox(18, label("02 / THE LONG GAME", "eyebrow"), label("Chance, measured.", "lab-heading"),
                 label("Uses the setup fields at left. Consecutive seeds reveal wins, draws, and game length across a repeatable batch.", "hint"),
@@ -236,12 +238,12 @@ public final class WarView implements AutoCloseable {
     private void runBatch() {
         pause();
         try {
-            var config = config(); int count = Integer.parseInt(games.getText().trim());
+            var config = config(); int count = Integer.parseInt(games.getText().trim()); int parallelism = workers.getValue();
             if (count < 1 || count > 10_000) throw new IllegalArgumentException("Games must be 1–10,000");
             Math.addExact(config.seed(), count - 1L);
             submit(new Task<Simulation.Report>() {
                 @Override protected Simulation.Report call() {
-                    return Simulation.run(config.names(), config.rules(), config.seed(), count,
+                    return Simulation.runParallel(config.names(), config.rules(), config.seed(), count, parallelism,
                             n -> { updateProgress(n, count); updateMessage(n + " / " + count + " games"); }, this::isCancelled);
                 }
             }, completed -> { experiment = null; report = completed; renderReport(); say("Batch complete. Charts and exports use this completed batch's settings.", false); });
@@ -251,11 +253,11 @@ public final class WarView implements AutoCloseable {
     private void runComparison() {
         pause();
         try {
-            var config = config(); int count = Integer.parseInt(games.getText().trim());
+            var config = config(); int count = Integer.parseInt(games.getText().trim()); int parallelism = workers.getValue();
             var alternative = new Rules(alternativeFaceDown.getValue(), config.rules().maxRounds(), config.rules().detectCycles());
             submit(new Task<RuleExperiments.Report>() {
                 @Override protected RuleExperiments.Report call() {
-                    return RuleExperiments.compare(config.names(), config.rules(), alternative, config.seed(), count,
+                    return RuleExperiments.compare(config.names(), config.rules(), alternative, config.seed(), count, parallelism,
                             n -> { updateProgress(n, 2L * count); updateMessage(n + " / " + (2L * count) + " paired runs"); }, this::isCancelled);
                 }
             }, completed -> { experiment = completed; report = completed.baseline(); renderReport(); say("Paired comparison complete. Both variants use the same seeds.", false); });
