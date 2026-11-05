@@ -276,7 +276,9 @@ public final class WarView implements AutoCloseable {
         wins.setLegendVisible(false); wins.setAnimated(false); wins.setPrefHeight(300);
         XYChart.Series<String,Number> outcomes = new XYChart.Series<>();
         for (int i = 0; i < r.names().size(); i++) outcomes.getData().add(new XYChart.Data<>((i + 1) + ": " + r.names().get(i), r.wins().get(i)));
-        outcomes.getData().add(new XYChart.Data<>("Draw", r.draws().values().stream().mapToInt(Integer::intValue).sum())); wins.getData().add(outcomes);
+        var completion = SimulationStatistics.summarize(r);
+        outcomes.getData().add(new XYChart.Data<>("Terminal draw", completion.terminalDraws()));
+        outcomes.getData().add(new XYChart.Data<>("Round cap", completion.cappedGames())); wins.getData().add(outcomes);
         CategoryAxis bins = new CategoryAxis(); bins.setLabel("Rounds per game"); NumberAxis frequency = new NumberAxis(); frequency.setLabel("Games");
         BarChart<String,Number> distribution = new BarChart<>(bins, frequency); distribution.setTitle("Game length distribution");
         distribution.setLegendVisible(false); distribution.setAnimated(false); distribution.setPrefHeight(280); distribution.setId("length-chart");
@@ -288,16 +290,30 @@ public final class WarView implements AutoCloseable {
             lengths.getData().add(new XYChart.Data<>(low == high ? "" + low : low + "–" + high, histogram[i])); }
         distribution.getData().add(lengths);
         String draws = r.draws().isEmpty() ? "Draws: none" : "Draws: " + String.join(" · ", r.draws().entrySet().stream().map(e -> readable(e.getKey()) + " " + e.getValue()).toList());
-        labResults.getChildren().setAll(context, stats, wins, label(draws, "hint"), distribution);
+        labResults.getChildren().setAll(context, stats, rates(r), wins, label(draws, "hint"), distribution);
         if (experiment != null) {
             var b = experiment.alternative();
             labResults.getChildren().add(0, label("PAIRED RULE COMPARISON · Charts below show the baseline. Exports include both variants.", "section-title"));
+            VBox alternativeRates = rates(b); alternativeRates.setId("alternative-uncertainty-summary");
+            labResults.getChildren().add(1, alternativeRates);
             labResults.getChildren().add(1, label("Alternative: " + b.rules().faceDownCards() + " face down · wins " + b.wins()
                     + " · draws " + b.draws() + " · mean rounds " + String.format(Locale.ROOT, "%.1f", b.meanRounds())
                     + " · p95 " + b.p95Rounds() + " · changed outcomes " + experiment.changedOutcomes() + "/" + b.games()
                     + " · mean round delta (alternative − baseline) " + String.format(Locale.ROOT, "%.1f", experiment.meanRoundsDelta())
                     + ". Capped runs are included; these descriptive differences are not significance tests.", "hint"));
         }
+    }
+    private VBox rates(Simulation.Report report) {
+        var stats=SimulationStatistics.summarize(report);
+        VBox box=new VBox(6);box.setId("uncertainty-summary");
+        box.getChildren().add(label(stats.completedGames()+" completed · "+stats.cappedGames()+" capped · "+stats.terminalDraws()+" terminal draws · 95% Wilson intervals", "section-title"));
+        for(var seat:stats.seats())box.getChildren().add(label(seat.name()+": all attempts "+rate(seat.allAttempts())
+                +" · completed only "+rate(seat.completedOnly()), "hint"));
+        box.getChildren().add(label("Approximate intervals assume independent representative deals. Completion-only rates exclude caps and may be biased by which games finish. Round summaries include capped durations.","hint"));
+        return box;
+    }
+    private String rate(SimulationStatistics.Interval value) {
+        return value.estimate()==null ? "unavailable (0 completed)" : String.format(Locale.ROOT,"%.1f%% [%.1f%%–%.1f%%], n=%d",100*value.estimate(),100*value.lower95(),100*value.upper95(),value.trials());
     }
     private VBox metric(String title, String value) { return new VBox(5, label(title, "eyebrow"), label(value, "metric")); }
     private void chooseReplay() {

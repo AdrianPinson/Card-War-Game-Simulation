@@ -123,6 +123,16 @@ class WarUiIT {
         });
         snapshot("rule-comparison");
     }
+    @Test void fullyCappedBatchLabelsMissingCompletionRateAndSeparateCapBar() throws Exception {
+        fx(() -> { tab(1); text("games").setText("10"); text("max-rounds").setText("1"); button("run-batch").fire(); return null; });
+        await(() -> !view.busy());
+        fx(() -> {
+            assertTrue(node("uncertainty-summary").lookupAll(".label").stream().anyMatch(n -> ((Label)n).getText().contains("unavailable (0 completed)")));
+            @SuppressWarnings("unchecked") var chart=(BarChart<String,Number>)node("wins-chart");
+            assertEquals(10,chart.getData().get(0).getData().stream().filter(d->d.getXValue().equals("Round cap")).findFirst().orElseThrow().getYValue().intValue());
+            return null;
+        });
+    }
     private Node node(String id) { Node n = view.root().lookup("#" + id); assertNotNull(n, id); return n; }
     private Button button(String id) { return (Button)node(id); }
     private TextField text(String id) { return (TextField)node(id); }

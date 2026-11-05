@@ -32,7 +32,23 @@ public final class Reports {
                 .append(",\"totalWars\":").append(report.totalWars())
                 .append(",\"minRounds\":").append(report.minRounds()).append(",\"maxRounds\":").append(report.maxRounds())
                 .append(",\"meanRounds\":").append(report.meanRounds()).append(",\"medianRounds\":").append(report.medianRounds())
-                .append(",\"p95Rounds\":").append(report.p95Rounds()).append('}').toString();
+                .append(",\"p95Rounds\":").append(report.p95Rounds()).append(",\"uncertainty\":").append(statistics(report)).append('}').toString();
+    }
+    private static String statistics(Simulation.Report report) {
+        var stats=SimulationStatistics.summarize(report);
+        StringBuilder json=new StringBuilder("{\"method\":\"Wilson 95%\",\"totalGames\":").append(stats.totalGames())
+                .append(",\"completedGames\":").append(stats.completedGames()).append(",\"cappedGames\":").append(stats.cappedGames())
+                .append(",\"terminalDraws\":").append(stats.terminalDraws()).append(",\"seats\":[");
+        for(var seat:stats.seats()) {
+            if(seat.seat()>0)json.append(',');
+            json.append("{\"seat\":").append(seat.seat()).append(",\"allAttempts\":").append(interval(seat.allAttempts()))
+                    .append(",\"completedOnly\":").append(interval(seat.completedOnly())).append('}');
+        }
+        return json.append("]}").toString();
+    }
+    private static String interval(SimulationStatistics.Interval value) {
+        return "{\"successes\":"+value.successes()+",\"trials\":"+value.trials()+",\"estimate\":"+value.estimate()
+                +",\"lower95\":"+value.lower95()+",\"upper95\":"+value.upper95()+"}";
     }
     public static String comparison(RuleExperiments.Report report) {
         return "{\"kind\":\"ruleComparison\",\"baseline\":" + batch(report.baseline())

@@ -118,3 +118,20 @@ python scripts/benchmark_parallel.py --games 1000 --workers 4 --repeats 3
 The benchmark checks exact JSON equality and reports wall-clock medians including JVM
 startup. Actual speed depends on CPU allocation, game length, memory and worker count;
 more workers need not be faster. See `docs/parallel-performance.md` for a measured example.
+
+## Statistical uncertainty and capped games
+
+Batch summaries and the lab show approximate **95% Wilson intervals** for each seat's
+win share. Both denominators are explicit: all attempted games, and completed games only.
+A round-limit stop is administrative censoring, displayed separately from a terminal draw
+(repeated state or war exhaustion). If every game hits the cap, completion-only rates and
+intervals are unavailable (`null` in JSON), rather than zero. Outcome bars still sum to
+all attempted games. Existing `drawsByReason.ROUND_LIMIT` remains for export compatibility;
+the additive `uncertainty` object separates capped/completed counts and interval denominators.
+
+Intervals use the binomial independent-representative-deal model. Consecutive seeded
+simulations are deterministic; these intervals do not establish RNG independence or
+fairness. Completion-only estimates can be biased by excluding long games. Reported
+mean/median/p95 rounds still include capped durations and are not estimates of uncapped
+completion time. Paired-rule JSON includes uncertainty for each variant separately,
+without claiming a confidence interval or significance test for their difference.
