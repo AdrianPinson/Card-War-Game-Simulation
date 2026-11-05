@@ -114,6 +114,7 @@ class WarUiIT {
         await(() -> !view.busy());
         fx(() -> {
             var experiment = view.experiment(); assertNotNull(experiment);
+            assertEquals(Math.min(4, Runtime.getRuntime().availableProcessors()), ((Spinner<?>)node("simulation-workers")).getValue());
             assertEquals(12, experiment.baseline().games()); assertEquals(12, experiment.alternative().games());
             assertEquals(3, experiment.baseline().rules().faceDownCards()); assertEquals(0, experiment.alternative().rules().faceDownCards());
             assertTrue(view.root().lookupAll(".section-title").stream().filter(n -> n instanceof Label)

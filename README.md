@@ -100,3 +100,21 @@ A changed outcome means status, winner seat, or termination reason differs for t
 The common round cap and cycle setting are preserved. Reported durations include capped
 runs; comparisons are descriptive experiments rather than significance tests or proof of fairness.
 Cancellation discards the unfinished experiment and preserves the previous completed report.
+
+## Parallel batches
+
+Choose 1–16 workers in the Simulation lab, or add `--workers 4` to `simulate`/`compare`.
+The CLI defaults to one worker; the desktop defaults to up to four available processors.
+Each worker owns its game. A bounded completion window limits queued work; the coordinator
+reports monotonic progress and restores seed order before computing statistics or exporting.
+Worker counts do not change seeded results or CSV/JSON ordering. Cancellation checks occur
+between rounds, cancel outstanding tasks, and close the owned executor without exporting
+a partial report. API cancellation suppliers must be safe to read from multiple threads.
+
+```sh
+python scripts/benchmark_parallel.py --games 1000 --workers 4 --repeats 3
+```
+
+The benchmark checks exact JSON equality and reports wall-clock medians including JVM
+startup. Actual speed depends on CPU allocation, game length, memory and worker count;
+more workers need not be faster. See `docs/parallel-performance.md` for a measured example.
