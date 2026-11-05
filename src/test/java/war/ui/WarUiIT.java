@@ -109,6 +109,19 @@ class WarUiIT {
             text("games").setText("2"); text("seed").setText(Long.toString(Long.MAX_VALUE)); button("run-batch").fire();
             assertFalse(view.busy()); assertTrue(label("message").getText().contains("overflow")); return null; });
     }
+    @Test void comparisonRunsPairedRulesAndShowsBothVariants() throws Exception {
+        fx(() -> { tab(1); text("games").setText("12"); text("max-rounds").setText("200"); button("compare-rules").fire(); return null; });
+        await(() -> !view.busy());
+        fx(() -> {
+            var experiment = view.experiment(); assertNotNull(experiment);
+            assertEquals(12, experiment.baseline().games()); assertEquals(12, experiment.alternative().games());
+            assertEquals(3, experiment.baseline().rules().faceDownCards()); assertEquals(0, experiment.alternative().rules().faceDownCards());
+            assertTrue(view.root().lookupAll(".section-title").stream().filter(n -> n instanceof Label)
+                    .anyMatch(n -> ((Label)n).getText().contains("PAIRED RULE COMPARISON")));
+            return null;
+        });
+        snapshot("rule-comparison");
+    }
     private Node node(String id) { Node n = view.root().lookup("#" + id); assertNotNull(n, id); return n; }
     private Button button(String id) { return (Button)node(id); }
     private TextField text(String id) { return (TextField)node(id); }
