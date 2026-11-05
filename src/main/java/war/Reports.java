@@ -34,6 +34,25 @@ public final class Reports {
                 .append(",\"meanRounds\":").append(report.meanRounds()).append(",\"medianRounds\":").append(report.medianRounds())
                 .append(",\"p95Rounds\":").append(report.p95Rounds()).append('}').toString();
     }
+    public static String comparison(RuleExperiments.Report report) {
+        return "{\"kind\":\"ruleComparison\",\"baseline\":" + batch(report.baseline())
+                + ",\"alternative\":" + batch(report.alternative()) + ",\"changedOutcomes\":" + report.changedOutcomes()
+                + ",\"meanRoundsDelta\":" + report.meanRoundsDelta() + "}";
+    }
+    public static void comparisonCsv(Path file, RuleExperiments.Report report) throws IOException {
+        FilesOut.write(file, writer -> {
+            writer.write("variant,game,seed,face_down_cards,max_rounds,detect_cycles,status,winner_seat,reason,rounds,wars\n");
+            for (int variant=0; variant<2; variant++) {
+                var batch = variant == 0 ? report.baseline() : report.alternative();
+                for (var sample : batch.samples()) {
+                    var r = sample.result();
+                    writer.write((variant == 0 ? "baseline" : "alternative") + "," + (sample.index()+1) + "," + sample.seed()
+                            + "," + batch.rules().faceDownCards() + "," + batch.rules().maxRounds() + "," + batch.rules().detectCycles()
+                            + "," + r.status() + "," + (r.winner() == null ? "" : r.winner()) + "," + r.reason() + "," + r.rounds() + "," + r.wars() + "\n");
+                }
+            }
+        });
+    }
     public static String result(Result result) {
         return "{\"status\":" + quote(result.status().name()) + ",\"winnerSeat\":" + result.winner()
                 + ",\"reason\":" + quote(result.reason().name()) + ",\"rounds\":" + result.rounds()

@@ -24,6 +24,7 @@ public final class War {
             Set<String> allowed = switch(command) {
                 case "play" -> Set.of("seed", "players", "names", "face-down", "max-rounds", "no-cycles", "trace", "summary", "verbose");
                 case "simulate" -> Set.of("seed", "players", "names", "face-down", "max-rounds", "no-cycles", "games", "csv", "summary");
+                case "compare" -> Set.of("seed", "players", "names", "face-down", "against-face-down", "max-rounds", "no-cycles", "games", "csv", "summary");
                 case "replay" -> Set.of("file", "summary");
                 default -> throw new IllegalArgumentException("Unknown command: " + command);
             };
@@ -52,9 +53,16 @@ public final class War {
                     summary = Reports.game(names, seed, rules, result);
                 } else {
                     int games = Integer.parseInt(options.getOrDefault("games", "100"));
-                    Simulation.Report report = Simulation.run(names, rules, seed, games);
-                    if (options.containsKey("csv")) Reports.csv(Path.of(options.get("csv")), report);
-                    summary = Reports.batch(report);
+                    if (command.equals("compare")) {
+                        Rules alternative = new Rules(Integer.parseInt(options.getOrDefault("against-face-down", "0")), rules.maxRounds(), rules.detectCycles());
+                        var report = RuleExperiments.compare(names, rules, alternative, seed, games, n -> {}, () -> false);
+                        if (options.containsKey("csv")) Reports.comparisonCsv(Path.of(options.get("csv")), report);
+                        summary = Reports.comparison(report);
+                    } else {
+                        Simulation.Report report = Simulation.run(names, rules, seed, games);
+                        if (options.containsKey("csv")) Reports.csv(Path.of(options.get("csv")), report);
+                        summary = Reports.batch(report);
+                    }
                 }
             }
             if (options.containsKey("summary")) Reports.json(Path.of(options.get("summary")), summary);
@@ -111,6 +119,7 @@ public final class War {
             War Card Game Simulation — core 0.1.0 (Java 17+)
             play     --seed 42 --names Adrian,Jordan --trace target/game.war --summary target/game.json
             simulate --games 100 --players 2 --seed 42 --csv target/games.csv --summary target/batch.json
+            compare  --games 100 --seed 42 --face-down 3 --against-face-down 0 --summary target/comparison.json
             replay   --file target/game.war
             Options for play/simulate: --face-down 3 --max-rounds 10000 --no-cycles
             --verbose prints each play round. Without it, stdout is one JSON summary.

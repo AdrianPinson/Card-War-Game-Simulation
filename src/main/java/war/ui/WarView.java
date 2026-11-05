@@ -43,6 +43,8 @@ public final class WarView implements AutoCloseable {
     private Task<?> active;
     private TableSession session;
     private Simulation.Report report;
+    private RuleExperiments.Report experiment;
+    private final Spinner<Integer> alternativeFaceDown = new Spinner<>(0, 10, 0);
     private boolean rendering, closed;
 
     public WarView(Window owner) {
@@ -107,6 +109,7 @@ public final class WarView implements AutoCloseable {
     public Parent root() { return root; }
     TableSession session() { return session; }
     Simulation.Report report() { return report; }
+    RuleExperiments.Report experiment() { return experiment; }
     boolean busy() { return active != null; }
     boolean clockRunning() { return clock != null && clock.getStatus() == Animation.Status.RUNNING; }
 
@@ -116,11 +119,13 @@ public final class WarView implements AutoCloseable {
         Button json = button("Export summary JSON…", "batch-json", () -> chooseBatchExport(true));
         csv.disableProperty().bind(javafx.beans.binding.Bindings.createBooleanBinding(() -> report == null, labResults.getChildren()));
         json.disableProperty().bind(csv.disableProperty());
+        alternativeFaceDown.setId("alternative-face-down");
+        Button comparison = button("Compare rules", "compare-rules", this::runComparison);
         HBox toolbar = new HBox(12, field("Games · 1–10,000", games), run); toolbar.setAlignment(Pos.BOTTOM_LEFT);
         games.setPrefWidth(140);
         VBox box = new VBox(18, label("02 / THE LONG GAME", "eyebrow"), label("Chance, measured.", "lab-heading"),
                 label("Uses the setup fields at left. Consecutive seeds reveal wins, draws, and game length across a repeatable batch.", "hint"),
-                toolbar, new HBox(8, csv, json), labResults);
+                toolbar, new HBox(12, field("Alternative face-down cards", alternativeFaceDown), comparison), new HBox(8, csv, json), labResults);
         box.setPadding(new Insets(26));
         labResults.getChildren().add(label("Run your first batch to compare seat outcomes and round distributions.", "empty-state"));
         return box;
@@ -239,9 +244,22 @@ public final class WarView implements AutoCloseable {
                     return Simulation.run(config.names(), config.rules(), config.seed(), count,
                             n -> { updateProgress(n, count); updateMessage(n + " / " + count + " games"); }, this::isCancelled);
                 }
-            }, completed -> { report = completed; renderReport(); say("Batch complete. Charts and exports use this completed batch's settings.", false); });
+            }, completed -> { experiment = null; report = completed; renderReport(); say("Batch complete. Charts and exports use this completed batch's settings.", false); });
         } catch (ArithmeticException e) { say("Consecutive seeds would overflow. Choose a lower starting seed.", true); }
         catch (IllegalArgumentException e) { error(e); }
+    }
+    private void runComparison() {
+        pause();
+        try {
+            var config = config(); int count = Integer.parseInt(games.getText().trim());
+            var alternative = new Rules(alternativeFaceDown.getValue(), config.rules().maxRounds(), config.rules().detectCycles());
+            submit(new Task<RuleExperiments.Report>() {
+                @Override protected RuleExperiments.Report call() {
+                    return RuleExperiments.compare(config.names(), config.rules(), alternative, config.seed(), count,
+                            n -> { updateProgress(n, 2L * count); updateMessage(n + " / " + (2L * count) + " paired runs"); }, this::isCancelled);
+                }
+            }, completed -> { experiment = completed; report = completed.baseline(); renderReport(); say("Paired comparison complete. Both variants use the same seeds.", false); });
+        } catch (IllegalArgumentException invalid) { error(invalid); }
     }
     private void renderReport() {
         var r = report;
@@ -269,6 +287,15 @@ public final class WarView implements AutoCloseable {
         distribution.getData().add(lengths);
         String draws = r.draws().isEmpty() ? "Draws: none" : "Draws: " + String.join(" · ", r.draws().entrySet().stream().map(e -> readable(e.getKey()) + " " + e.getValue()).toList());
         labResults.getChildren().setAll(context, stats, wins, label(draws, "hint"), distribution);
+        if (experiment != null) {
+            var b = experiment.alternative();
+            labResults.getChildren().add(0, label("PAIRED RULE COMPARISON · Charts below show the baseline. Exports include both variants.", "section-title"));
+            labResults.getChildren().add(1, label("Alternative: " + b.rules().faceDownCards() + " face down · wins " + b.wins()
+                    + " · draws " + b.draws() + " · mean rounds " + String.format(Locale.ROOT, "%.1f", b.meanRounds())
+                    + " · p95 " + b.p95Rounds() + " · changed outcomes " + experiment.changedOutcomes() + "/" + b.games()
+                    + " · mean round delta (alternative − baseline) " + String.format(Locale.ROOT, "%.1f", experiment.meanRoundsDelta())
+                    + ". Capped runs are included; these descriptive differences are not significance tests.", "hint"));
+        }
     }
     private VBox metric(String title, String value) { return new VBox(5, label(title, "eyebrow"), label(value, "metric")); }
     private void chooseReplay() {
@@ -303,9 +330,9 @@ public final class WarView implements AutoCloseable {
         if (report == null) return;
         File file = chooser(true, json ? "Export batch summary" : "Export per-game results", json ? "JSON summary" : "CSV results", json ? "*.json" : "*.csv");
         if (file == null) return;
-        var completed = report;
-        if (json) writeJson(file.toPath(), Reports.batch(completed));
-        else submit(new Task<Void>() { @Override protected Void call() throws Exception { Reports.csv(file.toPath(), completed); return null; } }, ignored -> say("Saved completed batch CSV.", false));
+        var completed = report; var comparison = experiment;
+        if (json) writeJson(file.toPath(), comparison == null ? Reports.batch(completed) : Reports.comparison(comparison));
+        else submit(new Task<Void>() { @Override protected Void call() throws Exception { if (comparison == null) Reports.csv(file.toPath(), completed); else Reports.comparisonCsv(file.toPath(), comparison); return null; } }, ignored -> say("Saved completed batch CSV.", false));
     }
     private void writeJson(Path path, String json) {
         submit(new Task<Void>() { @Override protected Void call() throws Exception { Reports.json(path, json); return null; } }, ignored -> say("Saved JSON summary.", false));

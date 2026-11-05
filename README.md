@@ -84,3 +84,19 @@ The JUnit suite covers handcrafted multiplayer/short-hand/repeated-war fixtures,
 The desktop adds six toolkit-independent history tests and ten integration tests of real JavaFX controls and worker callbacks. Run the display tests with `mvn -Pui-tests verify` (Linux CI uses Xvfb). Current total: **49 unit/CLI/history/package-probe cases + 10 desktop integration cases**. The desktop checks run on Linux; the core/CLI checks run on Linux, Windows, and macOS. This is not a claim of manual desktop validation on every OS.
 
 See the [two-minute demo and resume wording](docs/demo-guide.md) for a concise project walkthrough.
+
+## Paired rule experiments
+
+The Simulation lab's **Compare rules** runs the setup's rules against the alternative
+face-down count using identical consecutive seeds and names. It reports per-seat wins,
+draws by reason, game lengths, changed outcomes, and alternative-minus-baseline mean
+rounds. Charts are labeled as baseline; JSON/CSV exports contain both named variants.
+
+```sh
+java -jar target/war-simulation.jar compare --games 100 --seed 42 --face-down 3 --against-face-down 0 --max-rounds 5000 --csv target/comparison.csv --summary target/comparison.json
+```
+
+A changed outcome means status, winner seat, or termination reason differs for the same seed.
+The common round cap and cycle setting are preserved. Reported durations include capped
+runs; comparisons are descriptive experiments rather than significance tests or proof of fairness.
+Cancellation discards the unfinished experiment and preserves the previous completed report.
